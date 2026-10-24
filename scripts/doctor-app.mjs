@@ -23,6 +23,7 @@ import {checkViewedScene, clientFindings, forgetViewedScene, results, snapshot} 
 import {
   askToCheck, diagnoseTable, issueTitle, playerCapabilities, playerMessages, recentLoads, tableRows, tellGM, watchPlayers
 } from "./table.mjs";
+import {countFeature, markUsed} from "./usage.mjs";
 import {checkWorld, documentOf} from "./world-check.mjs";
 
 /** Tabs, and which need GM rights. */
@@ -671,6 +672,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
       ui.notifications.warn(t("SPD.Wizard.noCanvas"));
       return;
     }
+    countFeature(MODULE_ID, "wizardRun");
     const baseline = await this.#measure("measuring");
     const snap = snapshot(WIZARD_SECONDS);
     snap.frames = {...snap.frames, fps: baseline.fps, seconds: Math.max(snap.frames.seconds, 5)};
@@ -684,6 +686,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     if ( !chosen.length ) return;
     const wished = Object.fromEntries(chosen.map(p => [p.key, p.value]));
     const {changed, reload} = await applySettings(wished);
+    countFeature(MODULE_ID, "fixApply");
     if ( reload ) {
       await game.settings.set(MODULE_ID, "wizard", {stage: "verify", baseline: this.wizard.baseline, at: Date.now(),
         applied: changed.map(c => c.key)});
@@ -739,6 +742,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     const {fix} = this.#findingRef(target.dataset.ref);
     if ( !fix ) return;
     const {reload} = await applySettings({[fix.key]: fix.value});
+    countFeature(MODULE_ID, "fixApply");
     ui.notifications.info(t("SPD.Fix.applied"));
     if ( reload ) await confirmReload();
     this.render();
@@ -792,6 +796,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
       case "world": return this.#runWorld();
       case "startup": {
         armStartupProfile();
+        countFeature(MODULE_ID, "startupProfile");
         return confirmReload();
       }
       case "watch": {
@@ -808,6 +813,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
       case "wizardReload": return confirmReload();
       case "wizardUndo": {
         const {reload} = await undoChanges();
+        countFeature(MODULE_ID, "fixUndo");
         this.wizard = {stage: "idle"};
         if ( reload ) await confirmReload();
         return this.render();
@@ -822,6 +828,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
 
   async #runProfile() {
     if ( isProfiling() ) return;
+    countFeature(MODULE_ID, "moduleProfile");
     this.tab = "modules";
     this.busy.profile = 0.001;
     this.render();
@@ -840,6 +847,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   }
 
   async #runExperiments() {
+    countFeature(MODULE_ID, "graphicsTest");
     this.tab = "pc";
     this.busy.experiments = t("SPD.Experiment.starting");
     this.render();
@@ -870,6 +878,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   }
 
   async #runWorld() {
+    countFeature(MODULE_ID, "worldCheck");
     this.busy.world = true;
     this.render();
     try {
@@ -885,6 +894,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
 
   static async #onPreset(event, target) {
     const {reload} = await applyPreset(target.dataset.preset);
+    countFeature(MODULE_ID, "fixApply");
     ui.notifications.info(t("SPD.Preset.applied", {name: t(`SPD.Preset.${target.dataset.preset}.name`)}));
     if ( reload ) await confirmReload();
     this.render();
@@ -892,6 +902,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
 
   static async #onUndo() {
     const {reload} = await undoChanges();
+    countFeature(MODULE_ID, "fixUndo");
     ui.notifications.info(t("SPD.PC.undone"));
     if ( reload ) await confirmReload();
     this.render();
@@ -919,6 +930,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     try {
       const done = await optimizeFlow(src, scene);
       if ( done ) {
+        countFeature(MODULE_ID, "webpCopy");
         memory.scenes.delete(scene.id);
         this.busy.scene = true;
         this.#runScene(scene, true);
@@ -1015,6 +1027,7 @@ export async function openDoctor({tab, sceneId, banner}={}) {
   if ( banner ) app.banner = banner;
   await app.render({force: true});
   app.bringToFront?.();
+  markUsed(MODULE_ID);
   return app;
 }
 

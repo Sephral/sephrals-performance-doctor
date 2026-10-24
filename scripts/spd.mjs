@@ -21,6 +21,7 @@ import {noticeNewVersions, runSelfTest} from "./selftest.mjs";
 import {changeLanguage, registerSettings} from "./settings.mjs";
 import {clientFindings, snapshot} from "./state.mjs";
 import * as table from "./table.mjs";
+import {registerUsage} from "./usage.mjs";
 import {checkWorld} from "./world-check.mjs";
 
 /* -------------------------------------------- */
@@ -65,6 +66,11 @@ Hooks.once("init", () => {
     language: value => changeLanguage(value, refreshDoctor),
     redraw: refreshDoctor
   }, {open: OpenDoctorMenu, selfTest: SelfTestMenu});
+  registerUsage(MODULE_ID, {
+    features: ["moduleProfile", "startupProfile", "graphicsTest", "wizardRun", "fixApply", "fixUndo", "webpCopy",
+      "worldCheck"],
+    settings: ["theme", "autoPrompt", "gmAlerts"]
+  });
   game.keybindings.register(MODULE_ID, "open", {
     name: "SPD.Keybinding.open",
     hint: "SPD.Keybinding.openHint",
