@@ -1,0 +1,45 @@
+<div class="spd-shell">
+  {{#if banner}}
+  <div class="spd-banner" role="status">
+    <i class="fa-solid fa-bell" aria-hidden="true"></i><span>{{banner}}</span>
+    <button type="button" class="spd-icon" data-action="dismissBanner" aria-label="{{localize "SPD.Close"}}"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  {{/if}}
+
+  <header class="spd-hero" data-state="{{status.css}}">
+    <div class="spd-orb" aria-hidden="true"></div>
+    <div class="spd-hero-text">
+      <h2>{{status.title}}</h2>
+      <p>{{status.text}}{{#if status.more}} <strong>{{status.more}}</strong>{{/if}}</p>
+    </div>
+    <div class="spd-live">
+      <div class="spd-live-item" data-state="{{live.fpsCss}}" data-tooltip="{{localize "SPD.Live.fpsHint"}}">
+        <span class="spd-live-value" data-live="fps">{{live.fps}}</span><span class="spd-live-label">{{localize "SPD.Live.fps"}}</span>
+      </div>
+      <div class="spd-live-item" data-state="{{live.latencyCss}}" data-tooltip="{{localize "SPD.Live.latencyHint"}}">
+        <span class="spd-live-value" data-live="latency">{{live.latency}}</span><span class="spd-live-label">{{localize "SPD.Live.latency"}}</span>
+      </div>
+      <div class="spd-live-item" data-state="{{live.speedCss}}" data-tooltip="{{localize "SPD.Live.speedHint"}}">
+        <span class="spd-live-value" data-live="speed">{{live.speed}}</span><span class="spd-live-label">{{localize "SPD.Live.speed"}}</span>
+      </div>
+      <svg class="spd-spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"
+           data-tooltip="{{localize "SPD.Live.sparkHint"}}"><polyline points=""></polyline></svg>
+    </div>
+  </header>
+
+  <nav class="spd-tabs" role="tablist">
+    {{#each tabs}}
+    <button type="button" role="tab" class="{{#if active}}active{{/if}}" data-action="pickTab" data-tab="{{id}}"
+            aria-selected="{{#if active}}true{{else}}false{{/if}}"><i class="{{icon}}" aria-hidden="true"></i><span>{{label}}</span></button>
+    {{/each}}
+  </nav>
+
+  <div class="spd-scroll">
+    {{#if tab.overview}}{{> "modules/sephrals-performance-doctor/templates/overview.hbs"}}{{/if}}
+    {{#if tab.pc}}{{> "modules/sephrals-performance-doctor/templates/pc.hbs"}}{{/if}}
+    {{#if tab.scene}}{{> "modules/sephrals-performance-doctor/templates/scene.hbs"}}{{/if}}
+    {{#if tab.modules}}{{> "modules/sephrals-performance-doctor/templates/modules.hbs"}}{{/if}}
+    {{#if tab.players}}{{> "modules/sephrals-performance-doctor/templates/players.hbs"}}{{/if}}
+    {{#if tab.world}}{{> "modules/sephrals-performance-doctor/templates/world.hbs"}}{{/if}}
+  </div>
+</div>

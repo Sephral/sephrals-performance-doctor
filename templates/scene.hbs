@@ -1,0 +1,77 @@
+<section class="spd-scene">
+  <div class="spd-row">
+    {{#if sceneChoices}}
+    <select name="spd-scene" class="spd-grow" aria-label="{{localize "SPD.Scene.pick"}}">
+      {{#each sceneChoices}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if active}} ★{{/if}}</option>{{/each}}
+    </select>
+    {{else}}
+    <strong class="spd-grow">{{sceneName}}</strong>
+    {{/if}}
+    {{#unless noScene}}
+    <button type="button" data-action="run" data-task="rescan" {{#if checking}}disabled{{/if}}><i class="fa-solid fa-rotate" aria-hidden="true"></i>{{localize "SPD.Scene.rescan"}}</button>
+    {{/unless}}
+  </div>
+
+  {{#if noScene}}<p class="spd-hint">{{localize "SPD.Scene.none"}}</p>{{/if}}
+  {{#if failed}}<p class="spd-hint">{{localize "SPD.Scene.failed"}}</p>{{/if}}
+  {{#if checking}}<p class="spd-busy"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {{localize "SPD.Scene.checking"}}</p>{{/if}}
+
+  {{#if result}}
+  <div class="spd-tiles">
+    <div class="spd-tile" data-tooltip="{{localize "SPD.Scene.downloadHint"}}">
+      <span class="spd-big">{{result.bytes}}</span><span class="spd-muted">{{localize "SPD.Scene.download"}}</span>
+      {{#if result.mine}}<span class="spd-small">{{localize "SPD.Scene.mine" time=result.mine}}</span>{{/if}}
+    </div>
+    <div class="spd-tile" data-tooltip="{{localize "SPD.Scene.largestHint"}}">
+      <span class="spd-big">{{result.largest}}</span><span class="spd-muted">{{localize "SPD.Scene.largest"}}</span>
+    </div>
+    <div class="spd-tile" data-tooltip="{{localize "SPD.Scene.gpuHint"}}">
+      <span class="spd-big">{{result.gpu}}</span><span class="spd-muted">{{localize "SPD.Scene.gpu"}}</span>
+    </div>
+  </div>
+  <p class="spd-hint">{{localize "SPD.Scene.times"}}
+    {{#each result.times}}<span class="spd-pill">{{label}}: {{time}}</span>{{/each}}
+    {{#if result.unknown}}<br>{{localize "SPD.Scene.unknown" count=result.unknown}}{{/if}}
+  </p>
+  <dl class="spd-counts">
+    {{#each result.counts}}<div><dt>{{label}}</dt><dd>{{value}}</dd></div>{{/each}}
+  </dl>
+
+  <div class="spd-findings">
+    {{#each findings}}{{> "modules/sephrals-performance-doctor/templates/finding.hbs"}}{{/each}}
+  </div>
+
+  {{#if assets}}
+  <h3 class="spd-subhead">{{localize "SPD.Scene.files"}}</h3>
+  <table class="spd-table spd-assets">
+    <thead><tr><th>{{localize "SPD.Scene.file"}}</th><th>{{localize "SPD.Scene.use"}}</th><th class="num">{{localize "SPD.Scene.size"}}</th><th class="num">{{localize "SPD.Scene.pixels"}}</th><th></th></tr></thead>
+    <tbody>
+      {{#each assets}}
+      <tr class="{{#if heavy}}warn{{/if}}">
+        <td class="spd-file" data-tooltip="{{src}}">{{name}}{{#if error}} <i class="fa-solid fa-circle-question spd-muted" data-tooltip="{{localize "SPD.Scene.unreachable"}}"></i>{{/if}}</td>
+        <td>{{roles}}{{#if multi}} ×{{uses}}{{/if}}</td>
+        <td class="num">{{bytes}}</td>
+        <td class="num">{{px}}</td>
+        <td class="spd-cell-actions">
+          {{#if copy}}<button type="button" data-action="restore" data-src="{{src}}" data-tooltip="{{localize "SPD.Scene.restoreHint"}}"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i>{{localize "SPD.Scene.restore"}}</button>
+          {{else}}{{#if optimize}}<button type="button" class="spd-primary" data-action="optimize" data-src="{{src}}"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>{{localize "SPD.Action.optimize"}}</button>{{/if}}{{/if}}
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{#if sounds}}<p class="spd-hint">{{localize "SPD.Scene.sounds" bytes=sounds}}</p>{{/if}}
+  {{/if}}
+
+  {{#if loads.length}}
+  <h3 class="spd-subhead">{{localize "SPD.Scene.loads"}}</h3>
+  <ul class="spd-loads">
+    {{#each loads}}
+    <li class="{{#if slow}}warn{{/if}} {{#if failed}}bad{{/if}}"><strong>{{name}}</strong> <span>{{time}}</span>
+      {{#if bytes}}<span class="spd-muted">{{bytes}}</span>{{/if}} {{#if speed}}<span class="spd-muted">{{speed}}</span>{{/if}}
+      {{#if loading}}<em>{{localize "SPD.Players.loading"}}</em>{{/if}}{{#if failed}}<em>{{localize "SPD.Players.failed"}} {{files}}</em>{{/if}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+  {{/if}}
+</section>

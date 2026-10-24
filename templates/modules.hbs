@@ -1,0 +1,78 @@
+<section class="spd-modules">
+  <div class="spd-card">
+    <h3 class="spd-card-title"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i>{{localize "SPD.Modules.title"}}</h3>
+    <p class="spd-hint">{{localize "SPD.Modules.intro"}}</p>
+    {{#if measuring}}
+    <p class="spd-busy"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {{localize "SPD.Modules.measuring"}}</p>
+    <div class="spd-progress"><span style="width: {{measuring}}%"></span></div>
+    {{else}}
+    <div class="spd-actions">
+      <button type="button" class="spd-primary" data-action="run" data-task="profile"><i class="fa-solid fa-play" aria-hidden="true"></i>{{localize "SPD.Modules.run"}}</button>
+    </div>
+    {{/if}}
+
+    {{#if profile}}
+    <p class="spd-verdict">{{localize "SPD.Modules.total" seconds=profile.seconds total=profile.total}}</p>
+    <table class="spd-table spd-profile">
+      <thead><tr><th>{{localize "SPD.Modules.who"}}</th><th class="num">{{localize "SPD.Modules.perSecond"}}</th><th>{{localize "SPD.Modules.share"}}</th><th class="num">{{localize "SPD.Modules.slowest"}}</th></tr></thead>
+      <tbody>
+        {{#each profile.rows}}
+        <tr class="{{css}} spd-clickable" data-action="toggleRow" data-row="{{owner}}">
+          <td><i class="fa-solid {{#if open}}fa-caret-down{{else}}fa-caret-right{{/if}} spd-muted" aria-hidden="true"></i> {{name}}{{#if core}} <span class="spd-muted">{{localize "SPD.Modules.coreNote"}}</span>{{/if}}</td>
+          <td class="num">{{perSecond}} ms</td>
+          <td><span class="spd-bar"><span style="width: {{bar}}%"></span></span> <span class="spd-muted">{{share}} %</span></td>
+          <td class="num">{{slowest}}</td>
+        </tr>
+        {{#if open}}
+        <tr class="spd-detail"><td colspan="4">
+          <p class="spd-muted">{{kinds}}</p>
+          <ul>{{#each labels}}<li><code>{{label}}</code> <span class="spd-muted">{{kind}} · {{calls}}× · {{perSecond}} ms/s</span></li>{{/each}}</ul>
+        </td></tr>
+        {{/if}}
+        {{/each}}
+      </tbody>
+    </table>
+    {{#unless longFrames}}<p class="spd-hint">{{localize "SPD.Modules.noLongFrames"}}</p>{{/unless}}
+    <div class="spd-findings">
+      {{#each findings}}{{> "modules/sephrals-performance-doctor/templates/finding.hbs"}}{{/each}}
+    </div>
+    {{#if gmOnlyHint}}<p class="spd-hint">{{localize "SPD.Modules.gmOnly"}}</p>{{/if}}
+    {{/if}}
+  </div>
+
+  {{#if downloads.length}}
+  <div class="spd-card">
+    <h3 class="spd-card-title"><i class="fa-solid fa-download" aria-hidden="true"></i>{{localize "SPD.Modules.downloads"}}</h3>
+    <p class="spd-hint">{{localize "SPD.Modules.downloadsIntro"}}</p>
+    <ul class="spd-list">
+      {{#each downloads}}<li><span class="spd-grow">{{name}}</span><strong>{{bytes}}</strong> <span class="spd-muted">{{localize "SPD.Modules.files" count=requests}}</span></li>{{/each}}
+    </ul>
+  </div>
+  {{/if}}
+
+  <div class="spd-card">
+    <h3 class="spd-card-title"><i class="fa-solid fa-hourglass-start" aria-hidden="true"></i>{{localize "SPD.Startup.title"}}</h3>
+    <p class="spd-hint">{{localize "SPD.Startup.intro"}}</p>
+    <div class="spd-actions">
+      <button type="button" data-action="run" data-task="startup"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i>{{localize "SPD.Startup.run"}}</button>
+    </div>
+    {{#if startup}}
+    <p class="spd-verdict">{{localize "SPD.Startup.result" total=startup.total when=startup.when}}</p>
+    <dl class="spd-facts">
+      {{#each startup.phases}}<div><dt>{{label}}</dt><dd>{{time}}</dd></div>{{/each}}
+    </dl>
+    {{#if startup.rows.length}}
+    <h4 class="spd-subhead">{{localize "SPD.Startup.packages"}}</h4>
+    <ul class="spd-list">
+      {{#each startup.rows}}<li class="{{css}}"><span class="spd-grow">{{name}}</span><strong>{{time}}</strong></li>{{/each}}
+    </ul>
+    {{/if}}
+    {{#if startup.downloads.length}}
+    <h4 class="spd-subhead">{{localize "SPD.Startup.downloads"}}</h4>
+    <ul class="spd-list">
+      {{#each startup.downloads}}<li><span class="spd-grow">{{name}}</span><strong>{{bytes}}</strong></li>{{/each}}
+    </ul>
+    {{/if}}
+    {{/if}}
+  </div>
+</section>

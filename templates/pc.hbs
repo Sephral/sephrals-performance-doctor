@@ -1,0 +1,82 @@
+<section class="spd-pc">
+  <div class="spd-card">
+    <h3 class="spd-card-title"><i class="fa-solid fa-microchip" aria-hidden="true"></i>{{localize "SPD.PC.graphics"}}</h3>
+    <div class="spd-gpu">
+      <strong data-tooltip="{{gpu.raw}}">{{gpu.name}}</strong>
+      <span class="spd-pill {{gpu.kindCss}}">{{gpu.kind}}</span>
+      <span class="spd-muted">{{gpu.webgl}} · {{localize "SPD.PC.maxTexture"}} {{gpu.maxTexture}}</span>
+    </div>
+    <dl class="spd-facts">
+      {{#each device}}<div><dt>{{label}}</dt><dd>{{value}}</dd></div>{{/each}}
+    </dl>
+  </div>
+
+  <div class="spd-card">
+    <h3 class="spd-card-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i>{{localize "SPD.PC.settings"}}</h3>
+    <p class="spd-hint">{{localize "SPD.PC.settingsIntro"}}</p>
+    <div class="spd-settings">
+      {{#each settings}}
+      <label class="spd-setting" data-tooltip="{{hint}}">
+        <span class="spd-grow">{{label}}</span>
+        {{#if select}}
+        <select data-setting="{{key}}">
+          {{#each options}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+        </select>
+        {{/if}}
+        {{#if toggle}}<input type="checkbox" data-setting="{{key}}" {{#if on}}checked{{/if}}>{{/if}}
+      </label>
+      {{/each}}
+    </div>
+    <div class="spd-presets">
+      {{#each presets}}
+      <button type="button" data-action="preset" data-preset="{{id}}" data-tooltip="{{hint}}">{{label}}</button>
+      {{/each}}
+      {{#if changes}}
+      <button type="button" data-action="undo" data-tooltip="{{changes}}"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i>{{localize "SPD.PC.undo"}}</button>
+      {{/if}}
+    </div>
+  </div>
+
+  <div class="spd-card">
+    <h3 class="spd-card-title"><i class="fa-solid fa-flask" aria-hidden="true"></i>{{localize "SPD.PC.experimentsTitle"}}</h3>
+    <p class="spd-hint">{{localize "SPD.PC.experimentsIntro"}}</p>
+    {{#if busy.experiments}}
+    <p class="spd-busy"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> <span data-busy="experiments">{{busy.experiments}}</span></p>
+    {{else}}
+    <div class="spd-actions">
+      <button type="button" class="spd-primary" data-action="run" data-task="experiments" {{#unless canExperiment}}disabled{{/unless}}>
+        <i class="fa-solid fa-play" aria-hidden="true"></i>{{localize "SPD.PC.experimentsRun"}}</button>
+    </div>
+    {{/if}}
+    {{#if experiments}}
+    <table class="spd-table">
+      <thead><tr><th>{{localize "SPD.Experiment.what"}}</th><th class="num">{{localize "SPD.Live.fps"}}</th><th class="num">{{localize "SPD.Experiment.gain"}}</th></tr></thead>
+      <tbody>
+        <tr><td>{{localize "SPD.Experiment.baseline"}}</td><td class="num">{{experiments.baseline}}</td><td></td></tr>
+        {{#each experiments.rows}}
+        <tr class="{{#if better}}good{{/if}}"><td>{{label}}</td><td class="num">{{fps}}</td><td class="num">{{gain}} %</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+    <p class="spd-verdict">{{experiments.verdict}}</p>
+    {{#if experiments.filters}}<p class="spd-hint">{{localize "SPD.Experiment.filterNames" names=experiments.filters}}</p>{{/if}}
+    {{/if}}
+  </div>
+
+  <div class="spd-card">
+    <h3 class="spd-card-title"><i class="fa-solid fa-wifi" aria-hidden="true"></i>{{localize "SPD.PC.speedTitle"}}</h3>
+    <p class="spd-hint">{{localize "SPD.PC.speedIntro"}}</p>
+    {{#if speed}}
+    <p class="spd-verdict">{{localize "SPD.PC.speedResult" speed=speed.value time=speed.map}}</p>
+    {{else}}{{#if bandwidthEstimate}}
+    <p class="spd-verdict">{{localize "SPD.PC.speedEstimate" speed=bandwidthEstimate}}</p>
+    {{/if}}{{/if}}
+    <div class="spd-actions">
+      {{#if busy.speed}}
+      <p class="spd-busy"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {{localize "SPD.PC.speedRunning"}}</p>
+      {{else}}
+      <button type="button" data-action="run" data-task="speedTest"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i>{{localize "SPD.PC.speedRun"}}</button>
+      {{/if}}
+    </div>
+  </div>
+</section>

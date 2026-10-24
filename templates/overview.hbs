@@ -1,0 +1,89 @@
+<section class="spd-overview">
+  <div class="spd-card spd-wizard" data-stage="{{wizard.stage}}">
+    {{#if wizard.idle}}
+    <div class="spd-wizard-intro">
+      <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+      <div class="spd-grow">
+        <strong>{{localize "SPD.Wizard.title"}}</strong>
+        <p>{{localize "SPD.Wizard.intro"}}</p>
+      </div>
+      <button type="button" class="spd-primary" data-action="wizard" data-step="wizard">{{localize "SPD.Wizard.start"}}</button>
+    </div>
+    {{/if}}
+
+    {{#if wizard.measuring}}
+    <p><strong>{{localize "SPD.Wizard.measuring"}}</strong> {{localize "SPD.Wizard.measuringHint"}}</p>
+    <div class="spd-progress"><span style="width: {{wizard.progress}}%"></span></div>
+    {{/if}}
+
+    {{#if wizard.proposal}}
+    <p><strong>{{localize "SPD.Wizard.measured" fps=wizard.baseline}}</strong></p>
+    {{#if wizard.urgent.length}}
+    <p class="spd-subhead">{{localize "SPD.Wizard.first"}}</p>
+    {{#each wizard.urgent}}{{> "modules/sephrals-performance-doctor/templates/finding.hbs"}}{{/each}}
+    <p class="spd-subhead">{{localize "SPD.Wizard.also"}}</p>
+    {{/if}}
+    {{#if wizard.nothing}}
+    <p>{{localize "SPD.Wizard.nothing"}}</p>
+    {{else}}
+    <p>{{localize "SPD.Wizard.proposal"}}</p>
+    <ul class="spd-proposal">
+      {{#each wizard.items}}
+      <li><label>
+        <input type="checkbox" data-proposal="{{index}}" {{#if on}}checked{{/if}}>
+        <span><strong>{{label}}</strong>{{#if reload}} <em class="spd-muted">{{localize "SPD.Fix.needsReload"}}</em>{{/if}}<br><span class="spd-muted">{{why}}</span></span>
+      </label></li>
+      {{/each}}
+    </ul>
+    {{/if}}
+    <div class="spd-actions">
+      {{#unless wizard.nothing}}<button type="button" class="spd-primary" data-action="wizard" data-step="wizardApply"><i class="fa-solid fa-check"></i>{{localize "SPD.Wizard.apply"}}</button>{{/unless}}
+      <button type="button" data-action="wizard" data-step="wizardDone">{{localize "SPD.Wizard.cancel"}}</button>
+    </div>
+    {{#if wizard.other.length}}
+    <p class="spd-subhead">{{localize "SPD.Wizard.other"}}</p>
+    {{#each wizard.other}}{{> "modules/sephrals-performance-doctor/templates/finding.hbs"}}{{/each}}
+    {{/if}}
+    {{/if}}
+
+    {{#if wizard.reload}}
+    <p>{{localize "SPD.Wizard.reloadText"}}</p>
+    <div class="spd-actions">
+      <button type="button" class="spd-primary" data-action="wizard" data-step="wizardReload"><i class="fa-solid fa-rotate-right"></i>{{localize "SPD.Reload.now"}}</button>
+    </div>
+    {{/if}}
+
+    {{#if wizard.verifying}}
+    <p><strong>{{localize "SPD.Wizard.verifying"}}</strong> {{localize "SPD.Wizard.measuringHint"}}</p>
+    <div class="spd-progress"><span style="width: {{wizard.progress}}%"></span></div>
+    {{/if}}
+
+    {{#if wizard.result}}
+    <div class="spd-compare">
+      <div><span class="spd-big">{{wizard.before}}</span><span class="spd-muted">{{localize "SPD.Wizard.before"}}</span></div>
+      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+      <div class="{{#if wizard.better}}good{{/if}}"><span class="spd-big">{{wizard.after}}</span><span class="spd-muted">{{localize "SPD.Wizard.after"}}</span></div>
+    </div>
+    <p>{{#if wizard.better}}{{localize "SPD.Wizard.better" gain=wizard.gain}}{{else}}{{localize "SPD.Wizard.same"}}{{/if}}
+      {{#if wizard.still}} {{localize "SPD.Wizard.still"}}{{/if}}</p>
+    <div class="spd-actions">
+      <button type="button" class="spd-primary" data-action="wizard" data-step="wizardDone"><i class="fa-solid fa-check"></i>{{localize "SPD.Wizard.keep"}}</button>
+      {{#if wizard.canUndo}}<button type="button" data-action="wizard" data-step="wizardUndo"><i class="fa-solid fa-rotate-left"></i>{{localize "SPD.Wizard.undo"}}</button>{{/if}}
+      {{#if wizard.still}}<button type="button" data-action="wizard" data-step="wizardAgain"><i class="fa-solid fa-forward"></i>{{localize "SPD.Wizard.again"}}</button>{{/if}}
+    </div>
+    {{/if}}
+  </div>
+
+  {{#if tableLine}}
+  <div class="spd-line {{#if tableTrouble}}warn{{/if}}">
+    <i class="fa-solid fa-users" aria-hidden="true"></i><span class="spd-grow">{{tableLine}}</span>
+    <button type="button" data-action="pickTab" data-tab="players">{{localize "SPD.Overview.openPlayers"}}</button>
+  </div>
+  {{/if}}
+
+  {{#if allGood}}<p class="spd-allgood"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> {{localize "SPD.Overview.allGood"}}</p>{{/if}}
+
+  <div class="spd-findings">
+    {{#each findings}}{{> "modules/sephrals-performance-doctor/templates/finding.hbs"}}{{/each}}
+  </div>
+</section>

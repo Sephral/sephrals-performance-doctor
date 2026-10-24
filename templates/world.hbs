@@ -1,0 +1,42 @@
+<section class="spd-world">
+  <div class="spd-card">
+    <h3 class="spd-card-title"><i class="fa-solid fa-earth-europe" aria-hidden="true"></i>{{localize "SPD.World.title"}}</h3>
+    <p class="spd-hint">{{localize "SPD.World.intro"}}</p>
+    <div class="spd-actions">
+      {{#if busy.world}}
+      <p class="spd-busy"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {{localize "SPD.World.checking"}}</p>
+      {{else}}
+      <button type="button" class="spd-primary" data-action="run" data-task="world"><i class="fa-solid fa-play" aria-hidden="true"></i>{{localize "SPD.World.run"}}</button>
+      {{/if}}
+    </div>
+  </div>
+
+  {{#if worldResult}}
+  <div class="spd-tiles">
+    <div class="spd-tile" data-tooltip="{{localize "SPD.World.totalHint"}}"><span class="spd-big">{{worldResult.total}}</span><span class="spd-muted">{{localize "SPD.World.total"}}</span></div>
+    <div class="spd-tile"><span class="spd-big">{{worldResult.messages}}</span><span class="spd-muted">{{localize "SPD.World.messages"}}</span></div>
+    <div class="spd-tile"><span class="spd-big">{{worldResult.modules}}</span><span class="spd-muted">{{localize "SPD.World.modules"}}</span></div>
+  </div>
+
+  <div class="spd-findings">
+    {{#each findings}}{{> "modules/sephrals-performance-doctor/templates/finding.hbs"}}{{/each}}
+  </div>
+
+  <table class="spd-table">
+    <thead><tr><th>{{localize "SPD.World.part"}}</th><th class="num">{{localize "SPD.World.count"}}</th><th class="num">{{localize "SPD.World.size"}}</th><th class="num" data-tooltip="{{localize "SPD.World.diskHint"}}">{{localize "SPD.World.disk"}}</th></tr></thead>
+    <tbody>
+      {{#each worldResult.rows}}<tr><td>{{label}}</td><td class="num">{{count}}</td><td class="num">{{bytes}}</td><td class="num spd-muted">{{disk}}</td></tr>{{/each}}
+    </tbody>
+  </table>
+  {{#if worldResult.fog}}<p class="spd-hint">{{localize "SPD.World.fog" bytes=worldResult.fog}}</p>{{/if}}
+
+  <h3 class="spd-subhead">{{localize "SPD.World.largest"}}</h3>
+  <ul class="spd-list">
+    {{#each worldResult.largest}}
+    <li><span class="spd-grow">{{name}} <span class="spd-muted">{{kind}}</span>{{#if images}} <span class="spd-pill warn">{{localize "SPD.World.images" count=images}}</span>{{/if}}</span>
+      <strong>{{bytes}}</strong>
+      <button type="button" class="spd-icon" data-action="openDocument" data-collection="{{collection}}" data-id="{{id}}" aria-label="{{localize "SPD.Action.openDocument"}}"><i class="fa-solid fa-up-right-from-square"></i></button></li>
+    {{/each}}
+  </ul>
+  {{/if}}
+</section>

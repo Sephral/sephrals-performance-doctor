@@ -1,0 +1,16 @@
+<article class="spd-finding" data-severity="{{css}}" data-finding="{{id}}">
+  <i class="spd-finding-icon {{icon}}" aria-hidden="true"></i>
+  <div class="spd-finding-body">
+    <h3>{{title}}</h3>
+    {{#if text}}<p>{{text}}</p>{{/if}}
+    {{#if buttons.length}}
+    <div class="spd-actions">
+      {{#each buttons}}
+      <button type="button" class="{{#if primary}}spd-primary{{/if}}" data-action="{{action}}" data-ref="{{ref}}"
+              {{#if src}}data-src="{{src}}"{{/if}} {{#if collection}}data-collection="{{collection}}" data-id="{{id}}"{{/if}}
+              {{#if hint}}data-tooltip="{{hint}}"{{/if}} {{#if disabled}}disabled{{/if}}><i class="{{icon}}" aria-hidden="true"></i>{{label}}</button>
+      {{/each}}
+    </div>
+    {{/if}}
+  </div>
+</article>

@@ -1,0 +1,36 @@
+{
+  "id": "sephrals-performance-doctor",
+  "title": "Sephral’s Performance Doctor",
+  "description": "Finds out why Foundry runs slowly and helps fix it: frame rate, graphics chip, settings, connection, heavy scenes and modules that cost time, with one-click fixes and step-by-step guides for players and the GM.",
+  "version": "1.0.0",
+  "library": true,
+  "compatibility": {
+    "minimum": 13,
+    "verified": "14.369"
+  },
+  "authors": [
+    {
+      "name": "Sephral"
+    }
+  ],
+  "url": "https://github.com/Sephral/sephrals-performance-doctor.git",
+  "esmodules": [
+    "scripts/spd.mjs"
+  ],
+  "styles": [
+    "styles/spd.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    },
+    {
+      "lang": "de",
+      "name": "Deutsch",
+      "path": "lang/de.json"
+    }
+  ],
+  "socket": true
+}

@@ -1,0 +1,54 @@
+<section class="spd-players">
+  <div class="spd-row">
+    <p class="spd-hint spd-grow">{{localize "SPD.Players.intro"}}</p>
+    <button type="button" data-action="run" data-task="watch" data-tooltip="{{localize "SPD.Players.watchHint"}}"><i class="fa-solid fa-eye" aria-hidden="true"></i>{{localize "SPD.Players.watch"}}</button>
+    <button type="button" data-action="run" data-task="askAll" data-tooltip="{{localize "SPD.Players.askAllHint"}}"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i>{{localize "SPD.Players.askAll"}}</button>
+  </div>
+  {{#if alone}}<p class="spd-hint">{{localize "SPD.Players.alone"}}</p>{{/if}}
+
+  <table class="spd-table spd-people">
+    <thead><tr>
+      <th>{{localize "SPD.Players.who"}}</th><th class="num">{{localize "SPD.Live.fps"}}</th><th class="num">{{localize "SPD.Live.latency"}}</th>
+      <th class="num">{{localize "SPD.Live.speed"}}</th><th>{{localize "SPD.Players.status"}}</th><th></th>
+    </tr></thead>
+    <tbody>
+      {{#each rows}}
+      <tr class="{{#if stale}}stale{{/if}}">
+        <td><span class="spd-dot" style="background: {{color}}"></span><strong>{{name}}</strong>
+          <br><span class="spd-muted spd-small {{gpuCss}}" data-tooltip="{{browser}}">{{gpu}}</span></td>
+        <td class="num {{fpsCss}}">{{fps}}{{#if hidden}} <i class="fa-solid fa-eye-slash spd-muted" data-tooltip="{{localize "SPD.Players.hidden"}}"></i>{{/if}}</td>
+        <td class="num {{latencyCss}}">{{latency}}</td>
+        <td class="num {{speedCss}}">{{speed}}</td>
+        <td><span class="{{issueCss}}">{{issue}}</span>
+          {{#if load}}<br><span class="spd-small {{#if load.slow}}warn{{/if}} {{#if load.failed}}bad{{/if}}">
+            {{#if load.loading}}{{localize "SPD.Players.loadingScene" scene=load.scene time=load.time}}{{else}}{{localize "SPD.Players.loaded" scene=load.scene time=load.time}}{{/if}}
+            {{#if load.failed}} · {{localize "SPD.Players.failed"}}{{/if}}</span>{{/if}}
+        </td>
+        <td class="spd-cell-actions">{{#if canAsk}}<button type="button" data-action="ask" data-user="{{id}}" data-tooltip="{{localize "SPD.Players.askHint"}}"><i class="fa-solid fa-stethoscope" aria-hidden="true"></i></button>{{/if}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+  <div class="spd-findings">
+    {{#each findings}}{{> "modules/sephrals-performance-doctor/templates/finding.hbs"}}{{/each}}
+  </div>
+
+  {{#if messages.length}}
+  <h3 class="spd-subhead">{{localize "SPD.Players.messages"}}</h3>
+  <ul class="spd-list">
+    {{#each messages}}<li><strong>{{name}}</strong><span class="spd-grow">{{issue}}</span><span class="spd-muted">{{time}}</span></li>{{/each}}
+  </ul>
+  {{/if}}
+
+  {{#if loads.length}}
+  <h3 class="spd-subhead">{{localize "SPD.Scene.loads"}}</h3>
+  <ul class="spd-loads">
+    {{#each loads}}
+    <li class="{{#if slow}}warn{{/if}} {{#if failed}}bad{{/if}}"><strong>{{name}}</strong> <span>{{scene}}</span> <span>{{time}}</span>
+      {{#if bytes}}<span class="spd-muted">{{bytes}}</span>{{/if}} {{#if speed}}<span class="spd-muted">{{speed}}</span>{{/if}}
+      {{#if failed}}<em>{{localize "SPD.Players.failed"}} {{files}}</em>{{/if}}</li>
+    {{/each}}
+  </ul>
+  {{/if}}
+</section>
