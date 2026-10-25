@@ -94,6 +94,19 @@ The gear in the title bar of the doctor opens these settings.
 | Open the Performance Doctor | | Menu button |
 | Self-test | GM | Checks socket, attribution, meter, browser reports, texts and upload right |
 
+## Usage statistics
+
+The module can take part in a small usage report shared by all of Sephral’s modules. Nothing is counted or sent until the GM agrees: shortly after the world starts, the active GM is asked, and the question comes back at every start until there is an answer. The answer counts for all of Sephral’s modules in the world. *Share usage statistics* in the module settings turns the report on or off at any time, and *Manage statistics* below it shows what the report contains right now.
+
+With the GM’s consent only the active GM’s browser counts, and it sends at most one report a day. The question lists everything the report contains, from the Foundry version to a random world ID. For the Performance Doctor it holds:
+
+* on how many of the last 30 days the module was used
+* how often the module measurement, the startup measurement, the graphics test, the assistant and the world size check run, fixes are applied or undone and WebP copies of maps are made
+* the settings *Look*, *Offer help when the game is slow* and *Alerts for the GM* (only the chosen option)
+* where errors occur in the module code: file, line and error type, never the error message
+
+No names, chat messages, notes, dice results or other content of the world are sent.
+
 ## How the measuring works
 
 * The module loads as a **library**, before the system and the other modules. From then on it notes, for every hook callback, canvas ticker listener and repeating timer, which package registered it (from the call stack at that moment). Nothing is wrapped for this, except repeating timers of packages, which get a thin wrapper that only measures during a measurement.
