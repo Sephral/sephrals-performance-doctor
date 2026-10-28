@@ -4,6 +4,8 @@
  */
 
 import {MODULE_ID, readStorage, setting, t} from "./config.mjs";
+import {registerDebug} from "./debug.mjs";
+import {saveDebugFile} from "./debug-file.mjs";
 import {openDoctor, doctorApp, refreshDoctor, PerformanceDoctor} from "./doctor-app.mjs";
 import {readEnvironment, watchBattery} from "./environment.mjs";
 import {runExperiments} from "./experiments.mjs";
@@ -66,6 +68,7 @@ Hooks.once("init", () => {
     language: value => changeLanguage(value, refreshDoctor),
     redraw: refreshDoctor
   }, {open: OpenDoctorMenu, selfTest: SelfTestMenu});
+  registerDebug();
   registerUsage(MODULE_ID, {
     features: ["moduleProfile", "startupProfile", "graphicsTest", "wizardRun", "fixApply", "fixUndo", "webpCopy",
       "worldCheck"],
@@ -263,6 +266,8 @@ function api() {
     phases: () => ({...phases, ...startupPhases()}),
     /** Check the module (GM). */
     runSelfTest,
+    /** Save the debug file of Sephral's modules (GM): about one chat message, or without an id the latest picture. */
+    saveDebugFile: messageId => saveDebugFile(messageId ?? null, {moduleId: MODULE_ID}),
     /** The class of the window, for other modules. */
     PerformanceDoctor
   };

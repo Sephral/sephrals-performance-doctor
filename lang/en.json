@@ -545,6 +545,13 @@
       "Problems": "Self-test: {problems} of {checks} checks found a problem.",
       "Passed": "Self-test: all {checks} checks passed.",
       "NewVersions": "Performance Doctor: Foundry {versions} is newer than the version the module was tested with. Run the self-test in the module settings."
+    },
+    "DEBUG": {
+      "Title": "Debug file",
+      "Save": "Save debug file",
+      "Hint": "Saves one file for bug reports about all of Sephral’s modules in this world: versions, settings and what the modules recorded, such as the latest chat messages they read. It contains chat text and whispers, check it before you share it.",
+      "Entry": "Save Debug File (Sephral’s Modules)",
+      "Saved": "Debug file {file} saved. It contains chat text and whispers, check it before you share it."
     }
   }
 }

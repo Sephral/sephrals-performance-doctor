@@ -93,6 +93,7 @@ The gear in the title bar of the doctor opens these settings.
 | Warn about heavy scenes | world | When the GM activates a scene or adds a very large image |
 | Open the Performance Doctor | | Menu button |
 | Self-test | GM | Checks socket, attribution, meter, browser reports, texts and upload right |
+| Save debug file | GM | One file about all of Sephral’s modules for bug reports, see [Debug file](#debug-file) |
 
 ## Usage statistics
 
@@ -106,6 +107,12 @@ With the GM’s consent only the active GM’s browser counts, and it sends at m
 * where errors occur in the module code: file, line and error type, never the error message
 
 No names, chat messages, notes, dice results or other content of the world are sent.
+
+## Debug file
+
+For bug reports, the GM saves one file about all of Sephral’s modules in this world: `Save debug file` in the module settings, or `Save Debug File (Sephral’s Modules)` in the context menu of a chat message. It holds the versions of Foundry, the system and the active modules, the settings of the modules and what they recorded, for the Performance Doctor the numbers and findings of this computer, the last tests, the graphics settings it changed and what the GM knows about the players (by user ID, without names). Macros call `game.modules.get("sephrals-performance-doctor").api.saveDebugFile()`.
+
+The file contains chat text and whispers. Check it before you share it.
 
 ## How the measuring works
 
@@ -148,3 +155,4 @@ No names, chat messages, notes, dice results or other content of the world are s
 | `ownerOf(fn)` | The package that registered a callback |
 | `phases()` | Moments of the start of the page |
 | `runSelfTest()` | Self-test (GM) |
+| `saveDebugFile()` | Debug file of Sephral’s modules (GM) |
