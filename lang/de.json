@@ -422,6 +422,17 @@
       "downloadsIntro": "Was dieser Browser in dieser Sitzung außerhalb der Spielfläche heruntergeladen hat (Skripte, Stile, Klänge, Bilder in Fenstern), ohne Dateien aus dem Cache. Bilder der Spielfläche zählen in der Szenenprüfung.",
       "files": "Dateien: {count}"
     },
+    "Loadouts": {
+      "title": "Ohne diese Module testen",
+      "intro": "Schaltet die angehakten Module ab, dazu die Module, die eines davon brauchen. So siehst du, wie das Spiel ohne sie läuft. Sephral’s Module Loadouts speichert deine jetzigen Module vorher als Loadout, damit du mit einem Klick zurückschalten kannst. Danach lädt Foundry neu.",
+      "run": "Abschalten und testen",
+      "saveName": "Vor dem Leistungstest ({date})",
+      "running": "Du testest gerade ohne {modules}.",
+      "before": "Vor dem Test haben Skripte {total} % der Zeit gebraucht. Miss noch einmal zum Vergleich.",
+      "back": "Zurückschalten",
+      "hint": "Tipp: {link} schaltet solche Module für einen Test ab und mit einem Klick wieder an.",
+      "update": "Tipp: Aktualisiere {link}, dann schaltest du diese Module für einen Test ab und mit einem Klick wieder an."
+    },
     "Startup": {
       "title": "Ladezeit",
       "intro": "Misst den nächsten Start von Foundry: wie lange jeder Abschnitt dauert und wie viel jedes Modul dazu beiträgt. Foundry lädt dafür neu.",

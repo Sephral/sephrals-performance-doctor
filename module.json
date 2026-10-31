@@ -10,10 +10,21 @@
   },
   "authors": [
     {
-      "name": "Sephral"
+      "name": "Sephral",
+      "url": "https://github.com/Sephral"
     }
   ],
   "url": "https://github.com/Sephral/sephrals-performance-doctor.git",
+  "relationships": {
+    "recommends": [
+      {
+        "id": "sephrals-module-loadouts",
+        "type": "module",
+        "manifest": "https://github.com/Sephral/sephrals-module-loadouts/releases/latest/download/module.json",
+        "reason": "Lets the module measurement switch the modules that cost time off for a test and back on with one click."
+      }
+    ]
+  },
   "esmodules": [
     "scripts/spd.mjs"
   ],

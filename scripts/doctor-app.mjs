@@ -13,6 +13,7 @@ import {bindCopy, confirmReload, optimizeFlow, showGuide} from "./dialogs.mjs";
 import {runExperiments, strongestEffect, moduleFilterNames} from "./experiments.mjs";
 import {PRESETS, applyPreset, applySettings, currentValues, madeChanges, undoChanges} from "./fixes.mjs";
 import {copiesOf, restoreOriginal} from "./image-tools.mjs";
+import {loadoutsHint, loadoutsState, runningTest, switchBack, testChoices, testWithout} from "./loadouts.mjs";
 import {fpsRating, fpsSeries, frameStats, latency, measureFrames, memoryInfo, onSecond, supportsLongFrames} from "./meter.mjs";
 import {bandwidth, downloadsByOwner, downloadTime, lastSpeedTest, runSpeedTest} from "./network.mjs";
 import {SELF} from "./owners.mjs";
@@ -72,6 +73,8 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
       openDocument: PerformanceDoctor.#onOpenDocument,
       dismissBanner: PerformanceDoctor.#onDismissBanner,
       toggleRow: PerformanceDoctor.#onToggleRow,
+      testWithout: PerformanceDoctor.#onTestWithout,
+      loadoutBack: PerformanceDoctor.#onLoadoutBack,
       openSettings: PerformanceDoctor.#onOpenSettings
     }
   };
@@ -99,6 +102,13 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
 
   /** Rows of a result table that are open. */
   openRows = new Set();
+
+  /** Modules ticked for a test without them, and the measurement the ticks belong to. */
+  withoutIds = new Set();
+  #withoutFor = null;
+
+  /** Share of the time the scripts used in the shown measurement, in percent. */
+  #profileShare = null;
 
   /** The assistant: stage and numbers. */
   wizard = {stage: "idle"};
@@ -538,10 +548,16 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     const profileResult = results.profile;
     const context = {measuring: this.busy.profile ? Math.max(1, Math.round(this.busy.profile * 100)) : null,
       longFrames: supportsLongFrames()};
+    const canSwitch = game.user.isGM && game.user.can("SETTINGS_MODIFY");
+    const test = canSwitch && (loadoutsState() === "ready") ? runningTest() : null;
+    if ( test ) {
+      context.loadoutTest = {...test, before: test.before === null ? "" : t("SPD.Loadouts.before", {total: num(test.before)})};
+    }
     if ( profileResult ) {
       const rows = profileResult.rows.filter(r => r.ms > 0.5);
       const top = rows.slice(0, 14);
       const max = Math.max(1, ...top.map(r => r.msPerSecond));
+      this.#profileShare = rows.reduce((s, r) => s + r.msPerSecond, 0) / 10;
       context.profile = {
         seconds: Math.round(profileResult.durationMs / 1000),
         rows: top.map(r => ({
@@ -560,9 +576,11 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
           labels: r.labels.slice(0, 6).map(l => ({label: l.label, kind: t(`SPD.Modules.kind.${l.kind}`), calls: l.calls,
             perSecond: num(l.msPerSecond, 1)}))
         })),
-        total: num(rows.reduce((s, r) => s + r.msPerSecond, 0) / 10, 0)
+        total: num(this.#profileShare, 0)
       };
-      context.findings = this.#showFindings(diagnoseProfile(profileResult.rows, {self: SELF}), "modules");
+      const moduleFindings = diagnoseProfile(profileResult.rows, {self: SELF});
+      context.findings = this.#showFindings(moduleFindings, "modules");
+      if ( game.user.isGM ) context.loadouts = this.#loadoutsView(profileResult, top, moduleFindings, canSwitch);
     }
     context.downloads = downloadsByOwner().filter(d => d.bytes > 0).slice(0, 8).map(d => ({name: ownerName(d.owner),
       bytes: formatBytes(d.bytes), requests: d.requests}));
@@ -588,6 +606,34 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     }
     context.gmOnlyHint = !game.user.isGM;
     return context;
+  }
+
+  /**
+   * Below the measurement, for the GM: the modules to switch off for a test with Module Loadouts, or a quiet hint to
+   * it when a module costs too much and Module Loadouts is missing or too old.
+   * @param {object} profileResult
+   * @param {object[]} rows          The rows the table shows
+   * @param {object[]} findings      Findings of the measurement
+   * @param {boolean} canSwitch      May this user switch modules?
+   * @returns {object|null}
+   */
+  #loadoutsView(profileResult, rows, findings, canSwitch) {
+    const flagged = findings.map(f => f.data?.owner).filter(owner => String(owner ?? "").startsWith("module:"));
+    const state = loadoutsState();
+    if ( state !== "ready" ) return flagged.length ? {hint: loadoutsHint(state)} : null;
+    if ( !canSwitch ) return null;
+    const choices = testChoices(rows, flagged, id => !!game.modules.get(id)?.active);
+    if ( !choices.length ) return null;
+    // A new measurement ticks its own modules with a finding
+    if ( this.#withoutFor !== profileResult ) {
+      this.#withoutFor = profileResult;
+      this.withoutIds = new Set(choices.filter(c => c.flagged).map(c => c.id));
+    }
+    return {
+      choices: choices.map(c => ({id: c.id, name: ownerName(c.owner), on: this.withoutIds.has(c.id),
+        perSecond: num(c.msPerSecond, c.msPerSecond < 10 ? 1 : 0)})),
+      any: choices.some(c => this.withoutIds.has(c.id))
+    };
   }
 
   #players() {
@@ -730,6 +776,12 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     if ( el.dataset.proposal !== undefined ) {
       const item = this.wizard.proposal?.[Number(el.dataset.proposal)];
       if ( item ) item.on = el.checked;
+    }
+    if ( el.name === "spd-without" ) {
+      if ( el.checked ) this.withoutIds.add(el.value);
+      else this.withoutIds.delete(el.value);
+      const button = this.element.querySelector("[data-action=testWithout]");
+      if ( button ) button.disabled = !this.withoutIds.size;
     }
   }
 
@@ -972,6 +1024,26 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     if ( this.openRows.has(key) ) this.openRows.delete(key);
     else this.openRows.add(key);
     this.render();
+  }
+
+  static async #onTestWithout(event, target) {
+    const ids = [...this.withoutIds].filter(id => game.modules.get(id)?.active);
+    if ( !ids.length ) return;
+    target.disabled = true;
+    try {
+      if ( await testWithout(ids, {before: this.#profileShare}) ) countFeature(MODULE_ID, "loadoutTest");
+    } finally {
+      if ( this.rendered ) this.render();
+    }
+  }
+
+  static async #onLoadoutBack(event, target) {
+    target.disabled = true;
+    try {
+      await switchBack(target.dataset.loadout);
+    } finally {
+      if ( this.rendered ) this.render();
+    }
   }
 
   static async #onOpenSettings() {

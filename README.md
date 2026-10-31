@@ -12,7 +12,7 @@
 * **Knows the usual suspects:** a browser that draws without the graphics card, a scaled screen, quality set too high, a laptop on battery, the browser's energy saver. It names the cause and shows the way out for your browser.
 * **Make my game faster:** ten seconds of measuring, the settings that help most with one click, a second measurement that shows the difference. Everything can be undone.
 * **Graphics test:** switches lighting, animations, weather, videos and module effects off for a moment each and shows what costs the most on your computer.
-* **Which module eats the time:** measures every module, the system and Foundry for 15 seconds, and the next start of Foundry too.
+* **Which module eats the time:** measures every module, the system and Foundry for 15 seconds, and the next start of Foundry too. With [Sephral’s Module Loadouts](https://foundryvtt.com/packages/sephrals-module-loadouts) the GM switches the expensive ones off for a test and back on with one click.
 * **Heavy scenes:** the GM sees how many megabytes a scene sends to every player and how long the slowest player waits. A huge map becomes a small WebP copy with one click, and the original stays.
 * **The whole table at a glance:** frame rate, delay, download speed and graphics chip of every player, a warning when someone still waits for a scene, and a button that asks a player to check.
 * **The world:** what every player downloads when joining, the largest documents, images hidden inside journals, an oversized chat log.

@@ -3,9 +3,10 @@
  * first lines below see every hook registration and every download from the start of the page.
  */
 
-import {MODULE_ID, readStorage, setting, t} from "./config.mjs";
+import {MODULE_ID, TESTED_VERSIONS, readStorage, setting, t} from "./config.mjs";
 import {registerDebug} from "./debug.mjs";
 import {saveDebugFile} from "./debug-file.mjs";
+import {registerHubModule} from "./hub.mjs";
 import {openDoctor, doctorApp, refreshDoctor, PerformanceDoctor} from "./doctor-app.mjs";
 import {readEnvironment, watchBattery} from "./environment.mjs";
 import {runExperiments} from "./experiments.mjs";
@@ -64,6 +65,7 @@ class SelfTestMenu extends foundry.applications.api.ApplicationV2 {
 
 Hooks.once("init", () => {
   markPhase("init");
+  registerHubModule({moduleId: MODULE_ID, tested: TESTED_VERSIONS});
   registerSettings({
     language: value => changeLanguage(value, refreshDoctor),
     redraw: refreshDoctor
@@ -71,7 +73,7 @@ Hooks.once("init", () => {
   registerDebug();
   registerUsage(MODULE_ID, {
     features: ["moduleProfile", "startupProfile", "graphicsTest", "wizardRun", "fixApply", "fixUndo", "webpCopy",
-      "worldCheck"],
+      "worldCheck", "loadoutTest"],
     settings: ["theme", "autoPrompt", "gmAlerts"]
   });
   game.keybindings.register(MODULE_ID, "open", {

@@ -492,6 +492,28 @@
   margin-top: 2px;
 }
 
+/* Module measurement: switching modules off for a test with Module Loadouts */
+.spd .spd-loadouts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 7px;
+  border-top: 1px dashed var(--spd-line);
+}
+
+.spd .spd-loadouts .spd-proposal label {
+  align-items: center;
+}
+
+.spd .spd-loadouts .spd-proposal input {
+  margin: 0;
+}
+
+.spd .spd-loadouts-hint a {
+  color: var(--spd-accent);
+  text-decoration: underline;
+}
+
 .spd .spd-compare {
   display: flex;
   align-items: center;

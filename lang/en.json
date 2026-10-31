@@ -422,6 +422,17 @@
       "downloadsIntro": "What this browser downloaded in this session outside the canvas (scripts, styles, sounds, pictures in windows), without files from the cache. Images of the canvas count in the scene check.",
       "files": "files: {count}"
     },
+    "Loadouts": {
+      "title": "Test without these modules",
+      "intro": "Switches the ticked modules off, and the modules that need one of them, so you see how the game runs without them. Sephral’s Module Loadouts saves your current modules as a loadout first, so you can switch back with one click. Foundry reloads afterwards.",
+      "run": "Switch off and test",
+      "saveName": "Before the performance test ({date})",
+      "running": "You are testing without {modules}.",
+      "before": "Before the test, scripts used {total} % of the time. Measure again to compare.",
+      "back": "Switch back",
+      "hint": "Tip: {link} switches modules like these off for a test and back on with one click.",
+      "update": "Tip: update {link} to switch these modules off for a test and back on with one click."
+    },
     "Startup": {
       "title": "Loading time",
       "intro": "Measures the next start of Foundry: how long each stage takes and how much each module adds. Foundry reloads for it.",
@@ -530,8 +541,8 @@
       "off": "The doctor will not ask again. You can switch it on in the module settings."
     },
     "SELFTEST": {
-      "Title": "Performance Doctor self-test",
-      "Run": "Run self-test",
+      "Title": "Performance Doctor self test",
+      "Run": "Run self test",
       "Hint": "Checks the socket, the attribution of hooks, the meter, the browser reports and the texts.",
       "Socket": "The socket is not available.",
       "Attribution": "Only {share} % of the hook callbacks have a known owner. Is the module loaded as a library and the attribution switched on?",
@@ -542,9 +553,9 @@
       "Gpu": "The graphics chip could not be read.",
       "Texts": "Texts are missing: {keys}",
       "Upload": "You may not upload files, so smaller copies of images cannot be saved.",
-      "Problems": "Self-test: {problems} of {checks} checks found a problem.",
-      "Passed": "Self-test: all {checks} checks passed.",
-      "NewVersions": "Performance Doctor: Foundry {versions} is newer than the version the module was tested with. Run the self-test in the module settings."
+      "Problems": "Self test: {problems} of {checks} checks found a problem.",
+      "Passed": "Self test: all {checks} checks passed.",
+      "NewVersions": "Performance Doctor: Foundry {versions} is newer than the version the module was tested with. Run the self test in the module settings."
     },
     "DEBUG": {
       "Title": "Debug file",

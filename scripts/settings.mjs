@@ -5,6 +5,7 @@
 
 import {MODULE_ID, isShown} from "./config.mjs";
 import {FOLLOW_FOUNDRY, applyModuleLanguage} from "./language.mjs";
+import {TEST_SETTING} from "./loadouts.mjs";
 
 /**
  * The settings of the module, in the order they appear in the settings dialog.
@@ -51,6 +52,8 @@ export function registerSettings(handlers, menus) {
   game.settings.register(MODULE_ID, "promptSnooze", {scope: "client", config: false, type: Number, default: 0});
   game.settings.register(MODULE_ID, "startupReport", {scope: "client", config: false, type: Object, default: {}});
   game.settings.register(MODULE_ID, "acknowledgedVersions", {scope: "client", config: false, type: String, default: ""});
+  // Kept in the world: a running test without modules and the loadout of Module Loadouts that switches back
+  game.settings.register(MODULE_ID, TEST_SETTING, {scope: "world", config: false, type: Object, default: {}});
 
   game.settings.registerMenu(MODULE_ID, "open", {
     name: "SPD.Menu.open.name",

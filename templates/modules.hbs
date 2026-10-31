@@ -2,6 +2,13 @@
   <div class="spd-card">
     <h3 class="spd-card-title"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i>{{localize "SPD.Modules.title"}}</h3>
     <p class="spd-hint">{{localize "SPD.Modules.intro"}}</p>
+    {{#if loadoutTest}}
+    <div class="spd-line warn spd-loadout-test">
+      <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+      <span class="spd-grow">{{loadoutTest.text}}{{#if loadoutTest.before}} <span class="spd-muted">{{loadoutTest.before}}</span>{{/if}}</span>
+      <button type="button" data-action="loadoutBack" data-loadout="{{loadoutTest.loadoutId}}"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i>{{localize "SPD.Loadouts.back"}}</button>
+    </div>
+    {{/if}}
     {{#if measuring}}
     <p class="spd-busy"><i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> {{localize "SPD.Modules.measuring"}}</p>
     <div class="spd-progress"><span style="width: {{measuring}}%"></span></div>
@@ -36,6 +43,21 @@
     <div class="spd-findings">
       {{#each findings}}{{> "modules/sephrals-performance-doctor/templates/finding.hbs"}}{{/each}}
     </div>
+    {{#if loadouts.choices}}
+    <div class="spd-loadouts">
+      <h4 class="spd-subhead">{{localize "SPD.Loadouts.title"}}</h4>
+      <p class="spd-hint">{{localize "SPD.Loadouts.intro"}}</p>
+      <ul class="spd-proposal">
+        {{#each loadouts.choices}}
+        <li><label><input type="checkbox" name="spd-without" value="{{id}}" {{#if on}}checked{{/if}}> <span class="spd-grow">{{name}}</span> <span class="spd-muted">{{perSecond}} ms/s</span></label></li>
+        {{/each}}
+      </ul>
+      <div class="spd-actions">
+        <button type="button" class="spd-primary" data-action="testWithout" {{#unless loadouts.any}}disabled{{/unless}}><i class="fa-solid fa-power-off" aria-hidden="true"></i>{{localize "SPD.Loadouts.run"}}</button>
+      </div>
+    </div>
+    {{/if}}
+    {{#if loadouts.hint}}<p class="spd-hint spd-loadouts-hint"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> {{{loadouts.hint}}}</p>{{/if}}
     {{#if gmOnlyHint}}<p class="spd-hint">{{localize "SPD.Modules.gmOnly"}}</p>{{/if}}
     {{/if}}
   </div>

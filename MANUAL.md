@@ -40,6 +40,8 @@ How large the viewed scene is to download, the largest image in pixels, the grap
 
 **Measure for 15 seconds**: for 15 seconds every hook callback, canvas ticker listener, timer and animation frame of a package runs inside a stopwatch. The table shows the time per second for each module, the system, Foundry (which includes drawing the map) and the doctor itself. A click on a row shows where the time goes (hook names and functions). Long frames of more than 50 ms that the browser reports (Chrome and Edge) count too, so event handlers of modules show up. After the measurement every callback gets its original function back.
 
+**Test without these modules** (GM, with [Sephral’s Module Loadouts](https://foundryvtt.com/packages/sephrals-module-loadouts) active): below the measurement the GM ticks modules of the table, the ones with a finding are ticked already, and clicks *Switch off and test*. Module Loadouts lists what changes, also the modules that need a ticked one and go off with it, and asks. Then it saves the current modules as a world loadout named *Before the performance test* with the date, switches the modules off and Foundry reloads for everyone. While the test runs, the Modules tab says which modules are off, how much time the scripts used before, and offers *Switch back*, which applies the saved loadout again. The loadout stays in Module Loadouts until you delete it. Without Module Loadouts, or with a version that cannot do this yet, the GM sees a short tip with a link to it below the measurement when a module costs too much time.
+
 **Measure the next start**: Foundry reloads and the doctor measures the start: loading the scripts, loading the world, preparing, drawing the scene, modules getting ready, and the time each package needs in these steps.
 
 **Downloads by package**: what the browser downloaded outside the canvas. Images on the canvas are loaded by Foundry in a separate worker and count in the scene check instead.
@@ -92,7 +94,7 @@ The gear in the title bar of the doctor opens these settings.
 | Slow scene load after | world | Seconds (10 to 120, default 20) |
 | Warn about heavy scenes | world | When the GM activates a scene or adds a very large image |
 | Open the Performance Doctor | | Menu button |
-| Self-test | GM | Checks socket, attribution, meter, browser reports, texts and upload right |
+| Self test | GM | Checks socket, attribution, meter, browser reports, texts and upload right |
 | Save debug file | GM | One file about all of Sephral’s modules for bug reports, see [Debug file](#debug-file) |
 
 ## Usage statistics
@@ -102,7 +104,7 @@ The module can take part in a small usage report shared by all of Sephral’s mo
 With the GM’s consent only the active GM’s browser counts, and it sends at most one report a day. The counts are kept in a hidden world setting, so all browsers and computers of the GM count together, and turning the statistics off deletes them. A copy of a world gets its own world ID. The question lists everything the report contains, from the Foundry version to a random world ID. For the Performance Doctor it holds:
 
 * on how many of the last 30 days the module was used
-* how often the module measurement, the startup measurement, the graphics test, the assistant and the world size check run, fixes are applied or undone and WebP copies of maps are made
+* how often the module measurement, the startup measurement, the graphics test, the assistant and the world size check run, fixes are applied or undone, WebP copies of maps are made and modules are switched off for a test with Module Loadouts
 * the settings *Look*, *Offer help when the game is slow* and *Alerts for the GM* (only the chosen option)
 * where errors occur in the module code: file, line and error type, never the error message
 
@@ -113,6 +115,10 @@ No names, chat messages, notes, dice results or other content of the world are s
 For bug reports, the GM saves one file about all of Sephral’s modules in this world: `Save debug file` in the module settings, or `Save Debug File (Sephral’s Modules)` in the context menu of a chat message. It holds the versions of Foundry, the system and the active modules, the settings of the modules and what they recorded, for the Performance Doctor the numbers and findings of this computer, the last tests, the graphics settings it changed and what the GM knows about the players (by user ID, without names). Macros call `game.modules.get("sephrals-performance-doctor").api.saveDebugFile()`.
 
 The file contains chat text and whispers. Check it before you share it.
+
+## Sephral’s Modules
+
+The first button in the module settings, *Sephral’s Modules* (GMs only), opens one window for all of Sephral's modules in the world: the version, self test, settings, manual and demo video of each, a button that switches on an installed module that is off (Foundry then reloads the world for everyone), and the debug file. Below, *More from Sephral* lists other modules that fit the game system of the world, shown only after a click, each with its demo video. The list is part of the module. Only a video you start is loaded, from the module page on GitHub.
 
 ## How the measuring works
 
@@ -134,6 +140,7 @@ The file contains chat text and whispers. Check it before you share it.
 
 * Client settings in each browser: the settings the module changed (for undo), the assistant's state across a reload, the snooze of the hint and the last startup measurement.
 * Scene flag `optimized`: the copies a scene uses with their originals.
+* A hidden world setting: the running test without modules and the loadout that switches back.
 * Smaller copies: `worlds/<world>/sephrals-performance-doctor/` (The Forge: `sephrals-performance-doctor/<world>/` in the Assets Library).
 
 ## API
@@ -154,5 +161,5 @@ The file contains chat text and whispers. Check it before you share it.
 | `tableRows()`, `recentLoads(sceneId)` | What the GM knows about the players |
 | `ownerOf(fn)` | The package that registered a callback |
 | `phases()` | Moments of the start of the page |
-| `runSelfTest()` | Self-test (GM) |
+| `runSelfTest()` | Self test (GM) |
 | `saveDebugFile()` | Debug file of Sephral’s modules (GM) |
