@@ -2,6 +2,7 @@
 
 **Five frames per second on a strong computer? A map that never finishes loading for one player? Performance Doctor finds out why Foundry is slow, explains it in plain words and fixes it with you, step by step.**
 
+[![Install by link](https://img.shields.io/badge/Foundry%20VTT-Install%20by%20link-fe6a1f?logo=foundryvirtualtabletop&logoColor=white)](#install)
 [![Join Discord](https://img.shields.io/badge/Discord-Join%20the%20community-5865F2?logo=discord&logoColor=white)](https://discord.gg/7BjCgDYaBP)
 [![More modules by Sephral](https://img.shields.io/badge/GitHub-More%20modules%20by%20Sephral-181717?logo=github&logoColor=white)](https://github.com/Sephral)
 
@@ -29,7 +30,19 @@ The doctor watches quietly and costs no noticeable time. When a game stays very 
 
 ## Install
 
-Use the manifest URL `https://github.com/Sephral/sephrals-performance-doctor/releases/latest/download/module.json` in Foundry's module installer.
+Performance Doctor is not in Foundry's module search. Copy this link:
+
+```text
+https://github.com/Sephral/sephrals-performance-doctor/releases/latest/download/module.json
+```
+
+1. In Foundry's setup screen open **Add-on Modules** and click **Install Module**.
+2. Paste the link into **Manifest URL** at the bottom of the window.
+3. Click **Install**, then enable the module in your world.
+
+On The Forge open the Bazaar, click **Install From Manifest** and paste the link.
+
+![How to install a module by its link](https://raw.githubusercontent.com/Sephral/Sephral/main/media/install.gif)
 
 Foundry VTT 13 and 14 · any game system · English and German
 
