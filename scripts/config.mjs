@@ -13,7 +13,7 @@ export const SOCKET = `module.${MODULE_ID}`;
 export const TEMPLATES = `modules/${MODULE_ID}/templates`;
 
 /** The Foundry versions the module was verified against (see the self-test). */
-export const TESTED_VERSIONS = {core: "14.369"};
+export const TESTED_VERSIONS = {core: "14.370"};
 
 /** Prefix of the raw local storage keys the module reads before Foundry's settings exist. */
 export const STORAGE_PREFIX = `${MODULE_ID}.`;
