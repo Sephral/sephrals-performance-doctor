@@ -106,7 +106,7 @@ With the GM’s consent only the active GM’s browser counts, and it sends at m
 * on how many of the last 30 days the module was used
 * how often the module measurement, the startup measurement, the graphics test, the assistant and the world size check run, fixes are applied or undone, WebP copies of maps are made and modules are switched off for a test with Module Loadouts
 * the settings *Look*, *Offer help when the game is slow* and *Alerts for the GM* (only the chosen option)
-* where errors occur in the module code: file, line and error type, never the error message
+* where errors occur in the module code: file, line, error type and whether the error arose in the module itself, in Foundry, in the game system or in another module, never the error message or the name of another module
 
 No names, chat messages, notes, dice results or other content of the world are sent.
 
