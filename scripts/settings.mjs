@@ -85,7 +85,7 @@ export function changeLanguage(value, redraw) {
       if ( isShown(app) ) app.render({window: {title: app.title}});
     }
     redraw();
-    ui.controls?.render({reset: true});
+    ui.controls?.render({reset: true})?.catch?.(() => {});
     if ( game.settings.sheet?.rendered ) game.settings.sheet.render();
   });
 }
