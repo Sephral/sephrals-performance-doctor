@@ -19,6 +19,7 @@ import {installAttribution, ownerOf} from "./owners.mjs";
 import {beginStartupIfArmed, endStartup, isStartupProfiling, markPhase, phases, profile, startupPhases} from "./profiler.mjs";
 import {watchForSlowGame} from "./prompt.mjs";
 import {checkScene, diagnoseScene} from "./scene-check.mjs";
+import {sampleWindows} from "./sample-windows.mjs";
 import {registerSceneWatch} from "./scene-watch.mjs";
 import {noticeNewVersions, runSelfTest} from "./selftest.mjs";
 import {changeLanguage, registerSettings} from "./settings.mjs";
@@ -270,6 +271,8 @@ function api() {
     runSelfTest,
     /** Save the debug file of Sephral's modules (GM): about one chat message, or without an id the latest picture. */
     saveDebugFile: messageId => saveDebugFile(messageId ?? null, {moduleId: MODULE_ID}),
+    /** The window and the questions with made-up data, nothing measured or saved (translators, testing). */
+    samples: sampleWindows,
     /** The class of the window, for other modules. */
     PerformanceDoctor
   };

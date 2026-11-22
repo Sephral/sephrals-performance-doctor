@@ -18,7 +18,7 @@ const SNOOZE_MINUTES = 30;
 let shownThisSession = false;
 let slowSince = null;
 
-class SlowGamePrompt extends HandlebarsApplicationMixin(ApplicationV2) {
+export class SlowGamePrompt extends HandlebarsApplicationMixin(ApplicationV2) {
   /** @override */
   static DEFAULT_OPTIONS = {
     id: "spd-prompt",

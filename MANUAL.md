@@ -163,3 +163,4 @@ The first button in the module settings, *Sephral’s Modules* (GMs only), opens
 | `phases()` | Moments of the start of the page |
 | `runSelfTest()` | Self test (GM) |
 | `saveDebugFile()` | Debug file of Sephral’s modules (GM) |
+| `samples()` | The sample windows: the doctor window in every result state, the guides and the questions with made-up numbers. Nothing is measured, changed or saved; the translator and testers open them. |

@@ -27,17 +27,25 @@ export function guideHtml(text) {
  * @returns {Promise<void>}
  */
 export async function showGuide(id) {
-  const intro = game.i18n.has(`SPD.Guide.${id}.intro`) ? `<p>${esc(t(`SPD.Guide.${id}.intro`))}</p>` : "";
-  const outro = game.i18n.has(`SPD.Guide.${id}.outro`) ? `<p class="spd-muted">${esc(t(`SPD.Guide.${id}.outro`))}</p>` : "";
-  const content = `<div class="spd spd-guide" data-spd-theme="${esc(setting("theme"))}">${intro}`
-    + `${guideHtml(t(`SPD.Guide.${id}.steps`))}${outro}</div>`;
   await DialogV2.prompt({
     window: {title: t(`SPD.Guide.${id}.title`), icon: "fa-solid fa-list-check"},
     position: {width: 460},
-    content,
+    content: guideContent(id),
     ok: {label: t("SPD.Guide.close"), icon: "fa-solid fa-check"},
     render: (event, dialog) => bindCopy(dialog.element ?? event?.target?.element)
   }).catch(() => null);
+}
+
+/**
+ * The content of a guide.
+ * @param {string} id
+ * @returns {string}   HTML
+ */
+export function guideContent(id) {
+  const intro = game.i18n.has(`SPD.Guide.${id}.intro`) ? `<p>${esc(t(`SPD.Guide.${id}.intro`))}</p>` : "";
+  const outro = game.i18n.has(`SPD.Guide.${id}.outro`) ? `<p class="spd-muted">${esc(t(`SPD.Guide.${id}.outro`))}</p>` : "";
+  return `<div class="spd spd-guide" data-spd-theme="${esc(setting("theme"))}">${intro}`
+    + `${guideHtml(t(`SPD.Guide.${id}.steps`))}${outro}</div>`;
 }
 
 /**
@@ -58,12 +66,57 @@ export function bindCopy(element) {
 export async function confirmReload() {
   const yes = await DialogV2.confirm({
     window: {title: t("SPD.Reload.title"), icon: "fa-solid fa-rotate-right"},
-    content: `<p>${esc(t("SPD.Reload.text"))}</p>`,
+    content: reloadContent(),
     yes: {label: t("SPD.Reload.now")},
     no: {label: t("SPD.Reload.later")}
   }).catch(() => false);
   if ( yes ) foundry.utils.debouncedReload?.() ?? window.location.reload();
   return !!yes;
+}
+
+/**
+ * The text of the question before a reload.
+ * @returns {string}   HTML
+ */
+export function reloadContent() {
+  return `<p>${esc(t("SPD.Reload.text"))}</p>`;
+}
+
+/**
+ * The first question of the flow that makes a smaller copy: size and quality.
+ * @param {string} src
+ * @param {number} others   Other scenes that use the file
+ * @returns {string}   HTML
+ */
+export function optimizeContent(src, others) {
+  const sides = [0, 8192, 6144, 4096];
+  const options = sides.map(s => `<option value="${s}" ${s === 8192 ? "selected" : ""}>${esc(s ? t("SPD.Optimize.side", {side: s})
+    : t("SPD.Optimize.keep"))}</option>`).join("");
+  return `<div class="spd spd-dialog" data-spd-theme="${esc(setting("theme"))}">
+    <p>${esc(t("SPD.Optimize.intro", {file: fileName(src)}))}</p>
+    <div class="form-group"><label>${esc(t("SPD.Optimize.size"))}</label><select name="maxSide">${options}</select></div>
+    <div class="form-group"><label>${esc(t("SPD.Optimize.quality"))}</label>
+      <select name="quality"><option value="0.92">${esc(t("SPD.Optimize.q.high"))}</option>
+      <option value="0.85" selected>${esc(t("SPD.Optimize.q.normal"))}</option>
+      <option value="0.75">${esc(t("SPD.Optimize.q.small"))}</option></select></div>
+    ${others ? `<label class="spd-check"><input type="checkbox" name="others" checked> ${esc(t("SPD.Optimize.others",
+      {count: others}))}</label>` : ""}
+    <p class="spd-muted">${esc(t("SPD.Optimize.keepsOriginal"))}</p></div>`;
+}
+
+/**
+ * The second question of that flow: what the copy looks like, use it?
+ * @param {object} made    Sizes before and after (originalBytes, bytes, originalWidth, ...)
+ * @param {number} count   Scenes that would use the copy
+ * @returns {string}   HTML
+ */
+export function optimizeResultContent(made, count) {
+  const summary = t("SPD.Optimize.result", {before: formatBytes(made.originalBytes), after: formatBytes(made.bytes),
+    from: `${made.originalWidth} × ${made.originalHeight}`, to: `${made.width} × ${made.height}`});
+  const worse = (made.originalBytes - made.bytes) <= 0;
+  return `<div class="spd spd-dialog" data-spd-theme="${esc(setting("theme"))}"><p>${esc(summary)}</p>
+      ${worse ? `<p class="spd-warn">${esc(t("SPD.Optimize.notSmaller"))}</p>` : ""}
+      <p>${esc(t("SPD.Optimize.question", {count}))}</p></div>`;
 }
 
 /**
@@ -74,19 +127,7 @@ export async function confirmReload() {
  */
 export async function optimizeFlow(src, scene) {
   const others = scenesUsing(src).filter(s => s.id !== scene.id);
-  const sides = [0, 8192, 6144, 4096];
-  const options = sides.map(s => `<option value="${s}" ${s === 8192 ? "selected" : ""}>${esc(s ? t("SPD.Optimize.side", {side: s})
-    : t("SPD.Optimize.keep"))}</option>`).join("");
-  const content = `<div class="spd spd-dialog" data-spd-theme="${esc(setting("theme"))}">
-    <p>${esc(t("SPD.Optimize.intro", {file: fileName(src)}))}</p>
-    <div class="form-group"><label>${esc(t("SPD.Optimize.size"))}</label><select name="maxSide">${options}</select></div>
-    <div class="form-group"><label>${esc(t("SPD.Optimize.quality"))}</label>
-      <select name="quality"><option value="0.92">${esc(t("SPD.Optimize.q.high"))}</option>
-      <option value="0.85" selected>${esc(t("SPD.Optimize.q.normal"))}</option>
-      <option value="0.75">${esc(t("SPD.Optimize.q.small"))}</option></select></div>
-    ${others.length ? `<label class="spd-check"><input type="checkbox" name="others" checked> ${esc(t("SPD.Optimize.others",
-      {count: others.length}))}</label>` : ""}
-    <p class="spd-muted">${esc(t("SPD.Optimize.keepsOriginal"))}</p></div>`;
+  const content = optimizeContent(src, others.length);
   const choice = await DialogV2.wait({
     window: {title: t("SPD.Optimize.title"), icon: "fa-solid fa-wand-magic-sparkles"},
     position: {width: 440},
@@ -115,14 +156,9 @@ export async function optimizeFlow(src, scene) {
   ui.notifications.remove?.(note);
 
   const saved = made.originalBytes - made.bytes;
-  const summary = t("SPD.Optimize.result", {before: formatBytes(made.originalBytes), after: formatBytes(made.bytes),
-    from: `${made.originalWidth} × ${made.originalHeight}`, to: `${made.width} × ${made.height}`});
-  const worse = saved <= 0;
   const use = await DialogV2.confirm({
     window: {title: t("SPD.Optimize.title"), icon: "fa-solid fa-wand-magic-sparkles"},
-    content: `<div class="spd spd-dialog" data-spd-theme="${esc(setting("theme"))}"><p>${esc(summary)}</p>
-      ${worse ? `<p class="spd-warn">${esc(t("SPD.Optimize.notSmaller"))}</p>` : ""}
-      <p>${esc(t("SPD.Optimize.question", {count: 1 + (choice.others ? others.length : 0)}))}</p></div>`,
+    content: optimizeResultContent(made, 1 + (choice.others ? others.length : 0)),
     yes: {label: t("SPD.Optimize.use"), icon: "fa-solid fa-check"},
     no: {label: t("SPD.Optimize.cancel")}
   }).catch(() => false);

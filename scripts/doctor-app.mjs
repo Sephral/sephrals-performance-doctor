@@ -24,6 +24,7 @@ import {checkViewedScene, clientFindings, forgetViewedScene, results, snapshot} 
 import {
   askToCheck, diagnoseTable, issueTitle, playerCapabilities, playerMessages, recentLoads, tableRows, tellGM, watchPlayers
 } from "./table.mjs";
+import {sampleBlocked} from "./samples.mjs";
 import {countFeature, markUsed} from "./usage.mjs";
 import {checkWorld, documentOf} from "./world-check.mjs";
 
@@ -97,6 +98,12 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   /** A line on top, for example when the GM asked to check. */
   banner = null;
 
+  /**
+   * Made-up data of a sample window (sample-windows.mjs). When set, the window reads it instead of this client and
+   * the table, and changes nothing.
+   */
+  sample = null;
+
   /** Running tasks with their progress. */
   busy = {};
 
@@ -124,6 +131,33 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     return t("SPD.Title");
   }
 
+  /** Does this window show the GM's view? */
+  get #gm() {
+    return this.sample ? this.sample.gm !== false : game.user.isGM;
+  }
+
+  /** The numbers of this client, or the sample's. */
+  #snap(seconds=15) {
+    return this.sample ? this.sample.snap : snapshot(seconds);
+  }
+
+  #clientFindings(snap) {
+    return this.sample?.findings?.client ?? clientFindings(snap);
+  }
+
+  #rows() {
+    return this.sample ? this.sample.rows : tableRows();
+  }
+
+  #loads(sceneId) {
+    if ( !this.sample ) return recentLoads(sceneId);
+    return this.sample.loads.filter(l => !sceneId || (l.sceneId === sceneId));
+  }
+
+  #changes() {
+    return this.sample ? this.sample.changes : madeChanges();
+  }
+
   /** @override */
   async _renderFrame(options) {
     const frame = await super._renderFrame(options);
@@ -144,10 +178,10 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   /** @override */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    const gm = game.user.isGM;
+    const gm = this.#gm;
     if ( !gm && TABS.find(x => x.id === this.tab)?.gm ) this.tab = "overview";
-    const snap = snapshot();
-    const findings = clientFindings(snap);
+    const snap = this.#snap();
+    const findings = this.#clientFindings(snap);
     context.tabs = TABS.filter(x => !x.gm || gm).map(x => ({...x, label: t(`SPD.Tab.${x.id}`), active: this.tab === x.id}));
     context.tab = Object.fromEntries(TABS.map(x => [x.id, this.tab === x.id]));
     context.banner = this.banner;
@@ -179,7 +213,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   async _onFirstRender(context, options) {
     await super._onFirstRender(context, options);
     this.element.addEventListener("change", event => this.#onChange(event));
-    this.#offSecond = onSecond(() => this.#everySecond());
+    if ( !this.sample ) this.#offSecond = onSecond(() => this.#everySecond());
   }
 
   /** @override */
@@ -187,7 +221,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     super._onClose(options);
     this.#offSecond?.();
     this.#offSecond = null;
-    if ( this.busy.profile ) abortProfile();
+    if ( this.busy.profile && !this.sample ) abortProfile();
   }
 
   /* -------------------------------------------- */
@@ -266,7 +300,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   #drawSparkline() {
     const svg = this.element?.querySelector(".spd-spark");
     if ( !svg ) return;
-    const series = fpsSeries(60);
+    const series = this.sample ? this.sample.series : fpsSeries(60);
     const max = Math.max(60, ...series.filter(v => v !== null));
     const w = 120;
     const h = 28;
@@ -324,19 +358,19 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   }
 
   #viewFix(fix, ref) {
-    const gm = game.user.isGM;
+    const gm = this.#gm;
     switch ( fix.kind ) {
       case "setting": return {action: "fix", ref, icon: "fa-solid fa-wand-magic-sparkles", primary: true,
         label: t(`SPD.Fix.setting.${fix.key}.${String(fix.value)}`), hint: fix.reload ? t("SPD.Fix.needsReload") : ""};
       case "guide": return {action: "guide", ref, icon: "fa-solid fa-list-check", label: t(`SPD.Guide.${fix.guide}.button`)};
       case "action": {
         if ( ["modulesManage", "exportChat", "flushChat", "optimizeAll"].includes(fix.action) && !gm ) return null;
-        if ( (fix.action === "experiments") && !globalThis.canvas?.ready ) return null;
+        if ( (fix.action === "experiments") && !this.sample && !globalThis.canvas?.ready ) return null;
         return {action: "run", ref, icon: ACTION_ICONS[fix.action] ?? "fa-solid fa-play", label: t(`SPD.Action.${fix.action}`)};
       }
       case "tellGM": {
         if ( gm ) return null;
-        const online = game.users.some(u => u.active && u.isGM);
+        const online = this.sample ? true : game.users.some(u => u.active && u.isGM);
         return {action: "tellGM", ref, icon: "fa-solid fa-paper-plane", label: t("SPD.Action.tellGM"), disabled: !online,
           hint: online ? "" : t("SPD.Action.noGM")};
       }
@@ -371,8 +405,8 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     const shown = findings.filter(f => !["framesGood"].includes(f.id));
     const context = {findings: this.#showFindings(shown, "client"), wizard: this.#wizardView(snap)};
     context.allGood = !shown.some(f => f.severity >= 1) && (snap.frames.seconds >= 5);
-    if ( game.user.isGM ) {
-      const rows = tableRows().filter(r => !r.self);
+    if ( this.#gm ) {
+      const rows = this.#rows().filter(r => !r.self);
       const troubled = rows.filter(r => r.report?.issues?.some(i => i.severity >= 2) || (r.load?.phase === "loading"));
       context.tableLine = rows.length ? t(troubled.length ? "SPD.Overview.playersTrouble" : "SPD.Overview.playersFine",
         {count: troubled.length, total: rows.length}) : t("SPD.Overview.noPlayers");
@@ -401,8 +435,8 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
       view.after = num(after, 1);
       view.gain = before ? Math.round(((after - before) / before) * 100) : 0;
       view.better = after > (before * 1.15);
-      view.still = fpsRating(after, frameStats(5).target) !== "good";
-      view.canUndo = madeChanges().length > 0;
+      view.still = fpsRating(after, snap.frames.target) !== "good";
+      view.canUndo = this.#changes().length > 0;
     }
     return view;
   }
@@ -410,14 +444,15 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   #pc(snap) {
     const env = snap.env;
     const gpu = env.gpu;
-    const values = currentValues();
+    const values = this.sample ? this.sample.values : currentValues();
     const modes = [MODES.LOW, MODES.MED, MODES.HIGH, MODES.MAX];
     const modeLabels = {0: "SETTINGS.PerformanceModeLow", 1: "SETTINGS.PerformanceModeMed", 2: "SETTINGS.PerformanceModeHigh",
       3: "SETTINGS.PerformanceModeMax"};
     const toggle = key => ({key, label: t(`SPD.PC.setting.${key}`), hint: t(`SPD.PC.settingHint.${key}`), toggle: true,
       on: !!values[key]});
-    const mem = memoryInfo();
-    const experiments = results.experiments;
+    const mem = this.sample ? snap.memory : memoryInfo();
+    const experiments = this.sample ? this.sample.experiments : results.experiments;
+    const speedTest = this.sample ? this.sample.speedTest : lastSpeedTest();
     const best = strongestEffect(experiments);
     return {
       gpu: {name: gpu.name || t("SPD.PC.unknown"), kind: t(`SPD.PC.kind.${gpu.kind}`), kindCss: gpu.software ? "bad" : "",
@@ -444,29 +479,33 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
         toggle("mipmap")
       ],
       presets: Object.keys(PRESETS).map(id => ({id, label: t(`SPD.Preset.${id}.name`), hint: t(`SPD.Preset.${id}.hint`)})),
-      changes: madeChanges().map(c => t(`SPD.PC.setting.${c.key}`)).join(", "),
+      changes: this.#changes().map(c => t(`SPD.PC.setting.${c.key}`)).join(", "),
       experiments: experiments ? {
         baseline: num(experiments.baseline.fps, 1),
         rows: experiments.results.map(r => ({label: t(`SPD.Experiment.${r.id}`, {count: r.count ?? ""}), fps: num(r.fps, 1),
           gain: Math.round(r.gain * 100), better: r.gain >= 0.25})),
         verdict: best ? t(`SPD.Experiment.verdict.${best.id}`, {gain: Math.round(best.gain * 100)}) : t("SPD.Experiment.verdict.none"),
-        filters: moduleFilterNames().slice(0, 6).map(f => `${f.name} (${f.count})`).join(", ")
+        filters: (this.sample ? this.sample.filterNames : moduleFilterNames()).slice(0, 6).map(f => `${f.name} (${f.count})`).join(", ")
       } : null,
-      canExperiment: !!globalThis.canvas?.ready,
-      speed: lastSpeedTest() ? {value: formatSpeed(lastSpeedTest().bytesPerSecond),
-        map: formatDuration(downloadTime(50 * 1024 * 1024, lastSpeedTest().bytesPerSecond))} : null,
+      canExperiment: this.sample ? true : !!globalThis.canvas?.ready,
+      speed: speedTest ? {value: formatSpeed(speedTest.bytesPerSecond),
+        map: formatDuration(downloadTime(50 * 1024 * 1024, speedTest.bytesPerSecond))} : null,
       bandwidthEstimate: (snap.bandwidth?.source === "estimate") ? formatSpeed(snap.bandwidth.bytesPerSecond) : null
     };
   }
 
   async #scene(snap) {
-    const gm = game.user.isGM;
-    const scene = (gm && this.sceneId ? game.scenes.get(this.sceneId) : null) ?? globalThis.canvas?.scene ?? null;
-    const context = {sceneChoices: gm ? game.scenes.contents.sort((a, b) => a.name.localeCompare(b.name)).map(s => ({
+    const gm = this.#gm;
+    const sample = this.sample;
+    const scenes = sample ? sample.scenes : game.scenes.contents;
+    const scene = sample ? (scenes.find(s => s.id === this.sceneId) ?? scenes[0] ?? null)
+      : ((gm && this.sceneId ? game.scenes.get(this.sceneId) : null) ?? globalThis.canvas?.scene ?? null);
+    const context = {sceneChoices: gm ? [...scenes].sort((a, b) => a.name.localeCompare(b.name)).map(s => ({
       id: s.id, name: s.navName || s.name, selected: s.id === scene?.id, active: s.active})) : null};
     if ( !scene ) return {...context, noScene: true};
     context.sceneName = scene.navName || scene.name;
-    let summary = memory.scenes.get(scene.id);
+    let summary = sample ? (sample.summaries[scene.id] ?? null) : memory.scenes.get(scene.id);
+    if ( sample && !summary ) return {...context, [sample.sceneState === "failed" ? "failed" : "checking"]: true};
     // A check that failed is not repeated on its own, only by "Check again"
     if ( !summary && (this.#failedScene === scene.id) && !this.busy.scene ) return {...context, failed: true};
     if ( !summary && !this.busy.scene ) {
@@ -475,8 +514,8 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     }
     if ( !summary ) return {...context, checking: true};
     const bw = snap.bandwidth;
-    const players = gm ? playerCapabilities() : [];
-    const findings = gm ? diagnoseScene(summary, {players}) : sortFindings(clientFindings(snap).filter(f => f.area === "scene"));
+    const players = gm ? (sample ? sample.players : playerCapabilities()) : [];
+    const findings = gm ? diagnoseScene(summary, {players}) : sortFindings(this.#clientFindings(snap).filter(f => f.area === "scene"));
     context.result = {
       bytes: formatBytes(summary.totalBytes),
       unknown: summary.unknown,
@@ -492,7 +531,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     };
     context.findings = this.#showFindings(findings, "scene");
     if ( gm ) {
-      const copies = copiesOf(scene);
+      const copies = sample ? sample.copies : copiesOf(scene);
       context.assets = summary.assets.filter(a => !a.audio).sort((a, b) => (b.bytes ?? 0) - (a.bytes ?? 0)).slice(0, 40)
         .map(a => ({
           src: a.src,
@@ -508,7 +547,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
           error: a.error
         }));
       context.sounds = summary.soundBytes ? formatBytes(summary.soundBytes) : null;
-      context.loads = recentLoads(scene.id).slice(0, 12).map(l => this.#viewLoad(l));
+      context.loads = this.#loads(scene.id).slice(0, 12).map(l => this.#viewLoad(l));
     }
     return context;
   }
@@ -537,7 +576,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
 
   #viewLoad(l) {
     const user = game.users.get(l.userId);
-    return {name: user?.name ?? "?", scene: l.sceneName, phase: l.phase, loading: l.phase === "loading",
+    return {name: user?.name ?? l.name ?? "?", scene: l.sceneName, phase: l.phase, loading: l.phase === "loading",
       failed: l.phase === "failed", time: l.ms !== null && l.ms !== undefined ? formatDuration(l.ms)
         : formatDuration(Date.now() - l.startedAt), bytes: l.bytes ? formatBytes(l.bytes) : "",
       speed: l.speed ? formatSpeed(l.speed) : "", slow: (l.ms ?? (Date.now() - l.startedAt)) >= setting("slowLoadSeconds") * 1000,
@@ -545,12 +584,14 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   }
 
   #modules() {
-    const profileResult = results.profile;
+    const sample = this.sample;
+    const profileResult = sample ? sample.profile : results.profile;
     const context = {measuring: this.busy.profile ? Math.max(1, Math.round(this.busy.profile * 100)) : null,
-      longFrames: supportsLongFrames()};
+      longFrames: sample ? true : supportsLongFrames()};
     const canSwitch = game.user.isGM && game.user.can("SETTINGS_MODIFY");
-    const test = canSwitch && (loadoutsState() === "ready") ? runningTest() : null;
-    if ( test ) {
+    const test = !sample && canSwitch && (loadoutsState() === "ready") ? runningTest() : null;
+    if ( sample?.loadoutTest ) context.loadoutTest = sample.loadoutTest;
+    else if ( test ) {
       context.loadoutTest = {...test, before: test.before === null ? "" : t("SPD.Loadouts.before", {total: num(test.before)})};
     }
     if ( profileResult ) {
@@ -580,11 +621,11 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
       };
       const moduleFindings = diagnoseProfile(profileResult.rows, {self: SELF});
       context.findings = this.#showFindings(moduleFindings, "modules");
-      if ( game.user.isGM ) context.loadouts = this.#loadoutsView(profileResult, top, moduleFindings, canSwitch);
+      if ( this.#gm ) context.loadouts = sample ? sample.loadouts : this.#loadoutsView(profileResult, top, moduleFindings, canSwitch);
     }
-    context.downloads = downloadsByOwner().filter(d => d.bytes > 0).slice(0, 8).map(d => ({name: ownerName(d.owner),
+    context.downloads = (sample ? sample.downloads : downloadsByOwner()).filter(d => d.bytes > 0).slice(0, 8).map(d => ({name: ownerName(d.owner),
       bytes: formatBytes(d.bytes), requests: d.requests}));
-    const startup = setting("startupReport");
+    const startup = sample ? sample.startup : setting("startupReport");
     if ( startup?.rows ) {
       const p = startup.phases ?? {};
       const seg = (a, b) => ((p[a] !== null) && (p[b] !== null) && (p[b] >= p[a])) ? formatDuration(p[b] - p[a]) : "–";
@@ -604,7 +645,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
           .map(d => ({name: ownerName(d.owner), bytes: formatBytes(d.bytes)}))
       };
     }
-    context.gmOnlyHint = !game.user.isGM;
+    context.gmOnlyHint = !this.#gm;
     return context;
   }
 
@@ -637,7 +678,7 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
   }
 
   #players() {
-    const rows = tableRows();
+    const rows = this.#rows();
     const view = rows.map(r => {
       const rep = r.report;
       const issue = rep?.issues?.[0];
@@ -664,15 +705,15 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     return {
       rows: view,
       findings: this.#showFindings(findings, "table"),
-      loads: recentLoads().slice(0, 10).map(l => this.#viewLoad(l)),
-      messages: playerMessages().slice(0, 8).map(m => ({name: m.name, issue: issueTitle(m.finding),
+      loads: this.#loads().slice(0, 10).map(l => this.#viewLoad(l)),
+      messages: (this.sample ? this.sample.messages : playerMessages()).slice(0, 8).map(m => ({name: m.name, issue: issueTitle(m.finding),
         time: new Date(m.at).toLocaleTimeString()})),
       alone: rows.filter(r => !r.self).length === 0
     };
   }
 
   #world() {
-    const w = memory.world;
+    const w = this.sample ? this.sample.world : memory.world;
     if ( !w ) return {worldIdle: !this.busy.world};
     const disk = w.disk ?? {};
     return {
@@ -762,6 +803,11 @@ export class PerformanceDoctor extends HandlebarsApplicationMixin(ApplicationV2)
     const el = event.target;
     if ( el.name === "spd-scene" ) {
       this.sceneId = el.value;
+      this.render();
+      return;
+    }
+    if ( el.dataset.setting && this.sample ) {
+      sampleBlocked();
       this.render();
       return;
     }

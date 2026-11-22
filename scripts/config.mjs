@@ -146,6 +146,9 @@ export function writeStorage(key, value) {
   }
 }
 
+/** Titles of the made-up packages of the sample windows (sample-windows.mjs), by owner key. */
+export const sampleOwners = new Map();
+
 /**
  * The display name of an owner key from the attribution ("module:dice-so-nice", "system:dnd5e", "core").
  * @param {string} owner
@@ -153,6 +156,7 @@ export function writeStorage(key, value) {
  */
 export function ownerName(owner) {
   if ( !owner ) return t("SPD.Owner.unknown");
+  if ( sampleOwners.has(owner) ) return sampleOwners.get(owner);
   const [kind, id] = owner.split(":");
   if ( kind === "module" ) return game.modules.get(id)?.title ?? id;
   if ( kind === "system" ) return game.system?.id === id ? game.system.title : id;
